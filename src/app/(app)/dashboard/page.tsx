@@ -1,4 +1,5 @@
-import { createClient } from "@/lib/supabase/server";
+import { getSession } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { addTransaction } from "./actions";
 import DeleteButton from "./delete-button";
 
@@ -10,22 +11,20 @@ function formatPLN(value: number) {
 }
 
 export default async function DashboardPage() {
-  const supabase = await createClient();
+  const session = await getSession();
+  if (!session) return null; // layout nadrzędny już przekierował
 
-  // RLS w bazie danych gwarantuje, że to zapytanie zwróci WYŁĄCZNIE
-  // transakcje zalogowanego użytkownika — nie trzeba tego dodatkowo filtrować.
-  const { data: transactions } = await supabase
-    .from("transactions")
-    .select("id, type, amount, description, occurred_on")
-    .order("occurred_on", { ascending: false })
-    .order("created_at", { ascending: false })
-    .limit(100);
+  // Filtr userId gwarantuje, że każdy widzi wyłącznie własne transakcje.
+  const transactions = await prisma.transaction.findMany({
+    where: { userId: session.userId },
+    orderBy: [{ occurredOn: "desc" }, { createdAt: "desc" }],
+    take: 100,
+  });
 
-  const list = transactions ?? [];
-  const income = list
+  const income = transactions
     .filter((t) => t.type === "income")
     .reduce((sum, t) => sum + Number(t.amount), 0);
-  const expense = list
+  const expense = transactions
     .filter((t) => t.type === "expense")
     .reduce((sum, t) => sum + Number(t.amount), 0);
   const balance = income - expense;
@@ -128,13 +127,13 @@ export default async function DashboardPage() {
         <h2 className="border-b border-slate-200 px-5 py-4 text-sm font-semibold text-slate-900">
           Ostatnie transakcje
         </h2>
-        {list.length === 0 ? (
+        {transactions.length === 0 ? (
           <p className="px-5 py-8 text-center text-sm text-slate-400">
             Brak transakcji. Dodaj pierwszą powyżej.
           </p>
         ) : (
           <ul className="divide-y divide-slate-100">
-            {list.map((t) => (
+            {transactions.map((t) => (
               <li
                 key={t.id}
                 className="flex items-center justify-between px-5 py-3"
@@ -143,7 +142,9 @@ export default async function DashboardPage() {
                   <p className="text-sm text-slate-900">
                     {t.description || "(bez opisu)"}
                   </p>
-                  <p className="text-xs text-slate-400">{t.occurred_on}</p>
+                  <p className="text-xs text-slate-400">
+                    {t.occurredOn.toISOString().slice(0, 10)}
+                  </p>
                 </div>
                 <div className="flex items-center gap-3">
                   <span

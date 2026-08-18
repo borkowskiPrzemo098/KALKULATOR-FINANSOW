@@ -1,27 +1,32 @@
 # Kalkulator Finansów Rodzinnych
 
 Aplikacja webowa do zarządzania budżetem domowym — dostęp z dowolnego
-urządzenia (telefon, tablet, komputer), proste logowanie e-mail + hasło,
-dane każdego użytkownika są od siebie odizolowane.
+urządzenia (telefon, tablet, komputer). Logowanie samym loginem i hasłem
+(bez e-maila, bez numeru telefonu). Dane każdego użytkownika są od siebie
+odizolowane.
 
 ## Stack
 
 - [Next.js](https://nextjs.org/) (App Router, TypeScript, Tailwind CSS)
-- [Supabase](https://supabase.com/) — baza danych PostgreSQL + logowanie hasłem
-- **Row Level Security** w bazie danych — mechanizm, który na poziomie samej
-  bazy blokuje dostęp jednego użytkownika do danych innego. Nawet błąd w
-  kodzie aplikacji nie pozwoli podejrzeć cudzych transakcji.
+- [Prisma](https://www.prisma.io/) + PostgreSQL
+- Autoryzacja własna: hasła haszowane `bcrypt`, sesja w bezpiecznym
+  ciasteczku (httpOnly, JWT) — ten sam sprawdzony wzorzec co w projekcie
+  Siłownia Ranking.
 
-## Jak to działa (bezpieczeństwo)
+## Bezpieczeństwo
 
-- Hasła nigdy nie są przechowywane w tym repozytorium ani w kodzie — obsługuje
-  je Supabase Auth (haszowanie, tokeny sesji w bezpiecznych ciasteczkach).
+- Hasła nigdy nie są przechowywane jawnie — tylko jako hash `bcrypt`
+  (12 rund).
+- Sesja logowania żyje w ciasteczku `httpOnly` — niedostępnym dla
+  JavaScriptu w przeglądarce (ochrona przed XSS).
+- Każde zapytanie do bazy filtruje dane po `userId` zalogowanej osoby —
+  jeden użytkownik nie może odczytać ani usunąć transakcji innego.
+- Brak automatycznego resetu hasła e-mailem (aplikacja świadomie nie
+  zbiera e-maili ani telefonów) — hasło może zresetować wyłącznie
+  administrator, przez panel `/admin/users`.
 - Repozytorium jest publiczne, ale zawiera wyłącznie **kod aplikacji**.
-  Żadne dane finansowe użytkowników nigdy tu nie trafiają — żyją wyłącznie
-  w bazie danych Supabase, do której dostęp regulują polityki RLS
-  (`supabase/schema.sql`).
-- Middleware (`middleware.ts`) chroni strony prywatne (`/dashboard`) — bez
-  zalogowania użytkownik jest przekierowywany na `/login`.
+  Żadne hasła ani dane finansowe użytkowników nigdy tu nie trafiają —
+  żyją wyłącznie w bazie danych.
 
 ## Uruchomienie lokalnie
 
@@ -31,16 +36,17 @@ dane każdego użytkownika są od siebie odizolowane.
    npm install
    ```
 
-2. Utwórz darmowy projekt na [supabase.com](https://supabase.com/), a
-   następnie w **SQL Editor** wklej i uruchom zawartość pliku
-   [`supabase/schema.sql`](supabase/schema.sql) — utworzy to tabele i
-   polityki bezpieczeństwa.
-
-3. Skopiuj `.env.local.example` do `.env.local` i uzupełnij danymi z
-   **Project Settings → API** swojego projektu Supabase:
+2. Skopiuj `.env.example` do `.env` i uzupełnij `DATABASE_URL` (Postgres)
+   oraz `JWT_SECRET` (losowy ciąg, np. `openssl rand -hex 32`):
 
    ```bash
-   cp .env.local.example .env.local
+   cp .env.example .env
+   ```
+
+3. Utwórz tabele w bazie:
+
+   ```bash
+   npm run db:push
    ```
 
 4. Uruchom serwer developerski:
@@ -51,31 +57,51 @@ dane każdego użytkownika są od siebie odizolowane.
 
    Aplikacja będzie dostępna pod `http://localhost:3000`.
 
+5. Zarejestruj pierwsze konto na `/signup`, a następnie nadaj mu
+   uprawnienia administratora (potrzebne do resetowania haseł innych
+   użytkowników):
+
+   ```bash
+   npm run set-admin -- twoj-login
+   ```
+
 ## Wdrożenie (żeby mieć dostęp z każdego urządzenia)
 
 Najprościej wdrożyć na [Vercel](https://vercel.com/) (darmowy plan
 wystarczy na start):
 
 1. Zaimportuj to repozytorium z GitHuba na Vercel.
-2. Dodaj te same zmienne środowiskowe co w `.env.local` w ustawieniach
-   projektu na Vercel.
-3. Deploy — aplikacja dostanie publiczny adres `https://twoja-nazwa.vercel.app`,
-   dostępny z telefonu, tabletu i komputera.
+2. W kreatorze importu dodaj bazę danych: zakładka **Storage → Create
+   Database → Postgres** — `DATABASE_URL` doda się do projektu
+   automatycznie.
+3. Dodaj zmienną środowiskową `JWT_SECRET` (losowy długi ciąg).
+4. Deploy — aplikacja dostanie publiczny adres
+   `https://twoja-nazwa.vercel.app`, dostępny z telefonu, tabletu i
+   komputera.
+5. Po pierwszym wdrożeniu nadaj sobie uprawnienia admina poleceniem
+   `npm run set-admin -- twoj-login` uruchomionym lokalnie z tym samym
+   `DATABASE_URL` co produkcja.
 
 ## Struktura projektu
 
 ```
 src/app/                  strony (App Router)
   page.tsx                strona główna
-  login/, signup/          logowanie i rejestracja
+  login/, signup/          logowanie i rejestracja (login + hasło)
   (app)/dashboard/         panel po zalogowaniu (chroniony)
-src/lib/supabase/         klienci Supabase (przeglądarka, serwer, middleware)
-supabase/schema.sql       schemat bazy danych + polityki RLS
+  admin/users/             panel admina — reset hasła użytkownika
+  api/auth/                logowanie, rejestracja, wylogowanie
+  api/admin/users/         reset hasła (tylko admin)
+src/lib/auth.ts            sesja JWT w ciasteczku httpOnly
+src/lib/prisma.ts          klient Prisma
+prisma/schema.prisma       schemat bazy danych
+scripts/set-admin.ts       nadanie uprawnień admina (lokalnie, poza appką)
 ```
 
 ## Status projektu
 
-Wersja startowa: logowanie, rejestracja, dodawanie/usuwanie transakcji,
-podsumowanie przychodów/wydatków/bilansu. Możliwe dalsze kroki: kategorie
-wydatków, wykresy, budżety miesięczne, eksport do CSV, współdzielenie
-budżetu w rodzinie (wielu użytkowników na jednym koncie domowym).
+Wersja startowa: logowanie loginem/hasłem, rejestracja, dodawanie/usuwanie
+transakcji, podsumowanie przychodów/wydatków/bilansu, panel admina do
+resetu haseł. Możliwe dalsze kroki: kategorie wydatków, wykresy, budżety
+miesięczne, eksport do CSV, współdzielenie budżetu w rodzinie (wielu
+użytkowników na jednym koncie domowym).

@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Użytkownik loguje się samą nazwą użytkownika + hasłem — bez e-maila,
+// bez numeru telefonu. Zapomniane hasło resetuje wyłącznie administrator
+// (isAdmin = true) — patrz /admin/users w aplikacji.
+model User {
+  id           String        @id @default(cuid())
+  username     String        @unique
+  passwordHash String
+  displayName  String
+  isAdmin      Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  transactions Transaction[]
+  categories   Category[]
+}
+
+model Category {
+  id           String        @id @default(cuid())
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String
+  type         String // "income" | "expense"
+  createdAt    DateTime      @default(now())
+  transactions Transaction[]
+
+  @@index([userId])
+}
+
+model Transaction {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  type        String // "income" | "expense"
+  amount      Decimal   @db.Decimal(12, 2)
+  description String?
+  occurredOn  DateTime  @db.Date
+  createdAt   DateTime  @default(now())
+
+  @@index([userId])
+  @@index([occurredOn])
+}

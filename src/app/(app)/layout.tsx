@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getSession } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import LogoutButton from "./logout-button";
 
 export default async function AppLayout({
@@ -7,10 +8,15 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const session = await getSession();
+  if (!session) {
+    redirect("/login");
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.userId },
+    select: { displayName: true, isAdmin: true },
+  });
 
   if (!user) {
     redirect("/login");
@@ -24,7 +30,15 @@ export default async function AppLayout({
             Kalkulator Finansów Rodzinnych
           </span>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-slate-500">{user.email}</span>
+            {user.isAdmin && (
+              <a
+                href="/admin/users"
+                className="text-sm text-slate-500 hover:text-slate-900"
+              >
+                Panel admina
+              </a>
+            )}
+            <span className="text-sm text-slate-500">{user.displayName}</span>
             <LogoutButton />
           </div>
         </div>

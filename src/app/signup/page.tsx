@@ -1,15 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
 
 export default function SignupPage() {
-  const supabase = createClient();
-  const [email, setEmail] = useState("");
+  const router = useRouter();
+  const [username, setUsername] = useState("");
+  const [displayName, setDisplayName] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [done, setDone] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -22,31 +22,21 @@ export default function SignupPage() {
     }
 
     setLoading(true);
-    const { error } = await supabase.auth.signUp({ email, password });
+    const res = await fetch("/api/auth/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password, displayName }),
+    });
     setLoading(false);
 
-    if (error) {
-      setError(error.message);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setError(data.error || "Nie udało się założyć konta.");
       return;
     }
 
-    setDone(true);
-  }
-
-  if (done) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
-        <div className="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-          <h1 className="mb-2 text-xl font-semibold text-slate-900">
-            Sprawdź swoją skrzynkę e-mail
-          </h1>
-          <p className="text-sm text-slate-500">
-            Wysłaliśmy link potwierdzający na adres {email}. Kliknij go, aby
-            aktywować konto.
-          </p>
-        </div>
-      </div>
-    );
+    router.push("/dashboard");
+    router.refresh();
   }
 
   return (
@@ -56,19 +46,34 @@ export default function SignupPage() {
           Załóż konto
         </h1>
         <p className="mb-6 text-sm text-slate-500">
-          Kalkulator Finansów Rodzinnych
+          Kalkulator Finansów Rodzinnych — bez e-maila, tylko login i hasło
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-700">
-              E-mail
+              Login
             </label>
             <input
-              type="email"
+              type="text"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="username"
+              pattern="[a-zA-Z0-9_.\-]{3,32}"
+              title="3-32 znaki: litery, cyfry, kropka, myślnik, podkreślnik"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-700">
+              Wyświetlana nazwa (opcjonalnie)
+            </label>
+            <input
+              type="text"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="np. Rodzina Kowalskich"
               className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
             />
           </div>
@@ -80,6 +85,7 @@ export default function SignupPage() {
               type="password"
               required
               minLength={8}
+              autoComplete="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"

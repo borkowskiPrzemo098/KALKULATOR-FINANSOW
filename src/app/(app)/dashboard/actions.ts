@@ -1,15 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { getSession } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 export async function addTransaction(formData: FormData) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) throw new Error("Musisz być zalogowany.");
+  const session = await getSession();
+  if (!session) throw new Error("Musisz być zalogowany.");
 
   const type = formData.get("type") as string;
   const amount = Number(formData.get("amount"));
@@ -23,22 +20,28 @@ export async function addTransaction(formData: FormData) {
     throw new Error("Kwota musi być większa od zera.");
   }
 
-  const { error } = await supabase.from("transactions").insert({
-    user_id: user.id, // RLS i tak by to wymusił, ale ustawiamy jawnie
-    type,
-    amount,
-    description,
-    occurred_on: occurred_on || new Date().toISOString().slice(0, 10),
+  await prisma.transaction.create({
+    data: {
+      userId: session.userId,
+      type,
+      amount,
+      description,
+      occurredOn: new Date(occurred_on || new Date().toISOString().slice(0, 10)),
+    },
   });
-
-  if (error) throw new Error(error.message);
 
   revalidatePath("/dashboard");
 }
 
 export async function deleteTransaction(id: string) {
-  const supabase = await createClient();
-  const { error } = await supabase.from("transactions").delete().eq("id", id);
-  if (error) throw new Error(error.message);
+  const session = await getSession();
+  if (!session) throw new Error("Musisz być zalogowany.");
+
+  // deleteMany + filtr po userId (nie samo `id`) gwarantuje, że użytkownik
+  // nie może usunąć cudzej transakcji, nawet znając jej id.
+  await prisma.transaction.deleteMany({
+    where: { id, userId: session.userId },
+  });
+
   revalidatePath("/dashboard");
 }
