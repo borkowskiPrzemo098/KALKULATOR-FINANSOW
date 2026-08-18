@@ -1,6 +1,7 @@
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ArrowUpRightIcon, ArrowDownRightIcon, PlusIcon } from "@/components/icons";
+import TiltCard from "@/components/tilt-card";
 import { addTransaction } from "./actions";
 import DeleteButton from "./delete-button";
 
@@ -32,7 +33,7 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-10">
       {/* Podsumowanie — jeden spójny panel, nie trzy oddzielne karty. */}
-      <div className="grid divide-y divide-border rounded-2xl border border-border bg-canvas-raised sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+      <TiltCard className="grid divide-y divide-border rounded-2xl border border-border bg-canvas-raised sm:grid-cols-3 sm:divide-x sm:divide-y-0">
         <div className="p-6">
           <div className="flex items-center gap-1.5 text-xs font-medium text-ink-muted">
             <ArrowUpRightIcon className="h-3.5 w-3.5 text-positive" />
@@ -57,9 +58,9 @@ export default async function DashboardPage() {
             {formatPLN(balance)}
           </p>
         </div>
-      </div>
+      </TiltCard>
 
-      <div className="rounded-2xl border border-border bg-canvas-raised p-6">
+      <div className="elevated rounded-2xl border border-border bg-canvas-raised p-6">
         <h2 className="font-display text-xl italic text-ink">
           Dodaj transakcję
         </h2>
@@ -127,7 +128,7 @@ export default async function DashboardPage() {
         </form>
       </div>
 
-      <div className="rounded-2xl border border-border bg-canvas-raised">
+      <div className="elevated rounded-2xl border border-border bg-canvas-raised">
         <h2 className="border-b border-border px-6 py-5 font-display text-xl italic text-ink">
           Ostatnie transakcje
         </h2>

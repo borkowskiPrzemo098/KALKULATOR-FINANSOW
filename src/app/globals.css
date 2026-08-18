@@ -1,12 +1,11 @@
 @import "tailwindcss";
 
 /*
-  Kierunek wizualny "Vault" — prywatna, ciemna estetyka premium inspirowana
-  bankowością prywatną (Mercury, Ramp, Ledger): antracytowe tło, ciepła
-  kremowa biel tekstu, jeden akcent w złocie. Serif do liczb i nagłówków,
-  czysty grotesk do interfejsu. Świadomie jeden, spójny (ciemny) motyw —
-  budżet domowy to coś prywatnego, przeglądane wieczorami, nie publiczna
-  strona wymagająca trybu jasnego.
+  Kierunek wizualny "Vault" — prywatna estetyka premium inspirowana
+  bankowością prywatną (Mercury, Ramp, Ledger): ciepła kremowa/antracytowa
+  para motywów, jeden akcent w złocie, serif do liczb i nagłówków. Motyw
+  ciemny jest domyślny (budżet domowy przeglądany wieczorami), ale
+  użytkownik wybiera sam — patrz [data-theme] niżej i ThemeToggle.
 */
 
 :root {
@@ -26,9 +25,30 @@
   --positive-strong: #a9c79f;
   --negative: #c77b63;
   --negative-strong: #dd9679;
+  --shadow-color: 0deg 0% 0%;
 
   --background: var(--canvas);
   --foreground: var(--ink);
+}
+
+:root[data-theme="light"] {
+  --canvas: #f6f2ea;
+  --canvas-raised: #ffffff;
+  --surface: #ffffff;
+  --surface-hover: #f0ebe0;
+  --border: rgba(28, 23, 18, 0.09);
+  --border-strong: rgba(28, 23, 18, 0.16);
+  --ink: #1c1712;
+  --ink-muted: #6b6255;
+  --ink-faint: #948c7d;
+  --accent: #a97f2e;
+  --accent-strong: #8a6623;
+  --accent-ink: #fbf6ec;
+  --positive: #4f7a58;
+  --positive-strong: #3c5f44;
+  --negative: #a1543c;
+  --negative-strong: #86432e;
+  --shadow-color: 30deg 20% 40%;
 }
 
 @theme inline {
@@ -58,11 +78,12 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-ui), system-ui, sans-serif;
+  transition: background-color 0.35s ease, color 0.35s ease;
 }
 
-/* Pola formularzy: zawsze jasne tło + ciemny tekst, niezależnie od reszty
-   ciemnego motywu — to jedyne miejsce, gdzie użytkownik wpisuje dane, i ma
-   być czytelne pod każdym kątem. */
+/* Pola formularzy: zawsze jasne tło + ciemny tekst, niezależnie od motywu —
+   to jedyne miejsce, gdzie użytkownik wpisuje dane, i ma być czytelne pod
+   każdym kątem, w obu motywach. */
 input,
 select,
 textarea {
@@ -136,4 +157,69 @@ textarea::placeholder {
 }
 .animate-rise {
   animation: rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Karty 3D: warstwowy cień z realnym offsetem + rozmyciem (barwiony
+   kolorem tła, nie czarny na sztywno), plus ruchomy połysk podążający za
+   kursorem — sterowany zmiennymi --glow-x/--glow-y z TiltCard. */
+.tilt-card {
+  position: relative;
+  transform-style: preserve-3d;
+  box-shadow:
+    0 1px 2px hsl(var(--shadow-color) / 0.14),
+    0 12px 24px -8px hsl(var(--shadow-color) / 0.28),
+    0 28px 56px -20px hsl(var(--shadow-color) / 0.32);
+  transition: box-shadow 0.4s ease;
+}
+.tilt-card:hover {
+  box-shadow:
+    0 2px 4px hsl(var(--shadow-color) / 0.16),
+    0 18px 32px -8px hsl(var(--shadow-color) / 0.34),
+    0 40px 72px -20px hsl(var(--shadow-color) / 0.4);
+}
+.tilt-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    280px circle at var(--glow-x, 50%) var(--glow-y, 0%),
+    color-mix(in srgb, var(--accent) 16%, transparent),
+    transparent 65%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+.tilt-card:hover::after {
+  opacity: 1;
+}
+
+/* Wariant statyczny — sam warstwowy cień, bez przechyłu 3D. Dla paneli,
+   które nie powinny konkurować o uwagę z hero/kartami logowania. */
+.elevated {
+  box-shadow:
+    0 1px 2px hsl(var(--shadow-color) / 0.12),
+    0 8px 16px -6px hsl(var(--shadow-color) / 0.2);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+.elevated:hover {
+  box-shadow:
+    0 2px 4px hsl(var(--shadow-color) / 0.14),
+    0 14px 24px -8px hsl(var(--shadow-color) / 0.26);
+  transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-rise {
+    animation: none;
+  }
+  .tilt-card,
+  .tilt-card::after,
+  .elevated {
+    transition: none;
+  }
+  .elevated:hover {
+    transform: none;
+  }
 }

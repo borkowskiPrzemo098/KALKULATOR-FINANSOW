@@ -40,7 +40,7 @@ export default async function AdminUsersPage() {
           <h1 className="font-display text-2xl italic">Panel admina</h1>
         </div>
 
-        <div className="rounded-2xl border border-border bg-canvas-raised">
+        <div className="elevated rounded-2xl border border-border bg-canvas-raised">
           <h2 className="border-b border-border px-6 py-5 text-sm font-medium text-ink-muted">
             Reset hasła użytkownika
           </h2>

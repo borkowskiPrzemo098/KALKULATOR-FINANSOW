@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { MarkIcon, ShieldIcon } from "@/components/icons";
+import ThemeToggle from "@/components/theme-toggle";
 import LogoutButton from "./logout-button";
 
 export default async function AppLayout({
@@ -47,6 +48,7 @@ export default async function AppLayout({
             <span className="hidden text-sm text-ink-muted sm:inline">
               {user.displayName}
             </span>
+            <ThemeToggle />
             <LogoutButton />
           </div>
         </div>

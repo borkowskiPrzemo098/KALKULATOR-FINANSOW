@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { MarkIcon } from "@/components/icons";
+import ThemeToggle from "@/components/theme-toggle";
+import TiltCard from "@/components/tilt-card";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -46,17 +48,20 @@ export default function LoginPage() {
       />
 
       <div className="animate-rise relative w-full max-w-sm">
-        <Link
-          href="/"
-          className="mb-8 flex items-center justify-center gap-2 text-ink-muted transition-colors hover:text-ink"
-        >
-          <MarkIcon className="h-5 w-5 text-accent" />
-          <span className="text-xs font-medium tracking-wide">
-            Kalkulator Finansów Rodzinnych
-          </span>
-        </Link>
+        <div className="mb-8 flex items-center justify-between">
+          <Link
+            href="/"
+            className="flex items-center gap-2 text-ink-muted transition-colors hover:text-ink"
+          >
+            <MarkIcon className="h-5 w-5 text-accent" />
+            <span className="text-xs font-medium tracking-wide">
+              Kalkulator Finansów Rodzinnych
+            </span>
+          </Link>
+          <ThemeToggle />
+        </div>
 
-        <div className="rounded-2xl border border-border bg-canvas-raised p-8 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.6)]">
+        <TiltCard className="rounded-2xl border border-border bg-canvas-raised p-8">
           <h1 className="font-display text-3xl text-ink">Zaloguj się</h1>
           <p className="mt-1.5 text-sm text-ink-muted">
             Wpisz login i hasło do swojego budżetu.
@@ -109,7 +114,7 @@ export default function LoginPage() {
           <p className="mt-5 text-center text-xs text-ink-faint">
             Zapomniałeś hasła? Poproś administratora o reset.
           </p>
-        </div>
+        </TiltCard>
 
         <p className="mt-6 text-center text-sm text-ink-muted">
           Nie masz konta?{" "}

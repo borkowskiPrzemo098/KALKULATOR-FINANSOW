@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { MarkIcon, ArrowUpRightIcon, LockIcon, ShieldIcon } from "@/components/icons";
+import { MarkIcon, ArrowUpRightIcon, ArrowDownRightIcon, LockIcon, ShieldIcon } from "@/components/icons";
+import ThemeToggle from "@/components/theme-toggle";
+import TiltCard from "@/components/tilt-card";
 
 export default function Home() {
   return (
@@ -32,42 +34,81 @@ export default function Home() {
             >
               Załóż konto
             </Link>
+            <ThemeToggle />
           </nav>
         </header>
 
         <main className="flex flex-1 flex-col justify-center py-16">
-          <div className="animate-rise max-w-3xl">
-            <h1 className="font-display text-6xl leading-[1.05] text-ink sm:text-7xl">
-              Prywatny budżet
-              <br />
-              <span className="italic text-ink-muted">rodzinny.</span>
-            </h1>
-            <p className="mt-7 max-w-xl text-lg leading-relaxed text-ink-muted">
-              Koniec z rozjeżdżającym się Excelem. Jeden kalkulator budżetu
-              rodzinnego, dostępny z telefonu, tabletu i komputera — a Twoje
-              dane widzisz tylko Ty.
-            </p>
+          <div className="grid items-center gap-16 lg:grid-cols-[1.1fr_0.9fr]">
+            <div className="animate-rise max-w-xl">
+              <h1 className="font-display text-6xl leading-[1.05] text-ink sm:text-7xl">
+                Prywatny budżet
+                <br />
+                <span className="italic text-ink-muted">rodzinny.</span>
+              </h1>
+              <p className="mt-7 max-w-xl text-lg leading-relaxed text-ink-muted">
+                Koniec z rozjeżdżającym się Excelem. Jeden kalkulator budżetu
+                rodzinnego, dostępny z telefonu, tabletu i komputera — a
+                Twoje dane widzisz tylko Ty.
+              </p>
 
-            <div className="mt-10 flex flex-wrap items-center gap-4">
-              <Link
-                href="/signup"
-                className="group inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3.5 text-sm font-semibold text-accent-ink transition-colors hover:bg-accent-strong"
-              >
-                Załóż konto
-                <ArrowUpRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-              </Link>
-              <Link
-                href="/login"
-                className="inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-sm font-medium text-ink-muted transition-colors hover:text-ink"
-              >
-                Mam już konto
-              </Link>
+              <div className="mt-10 flex flex-wrap items-center gap-4">
+                <Link
+                  href="/signup"
+                  className="group inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3.5 text-sm font-semibold text-accent-ink transition-colors hover:bg-accent-strong"
+                >
+                  Załóż konto
+                  <ArrowUpRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                </Link>
+                <Link
+                  href="/login"
+                  className="inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-sm font-medium text-ink-muted transition-colors hover:text-ink"
+                >
+                  Mam już konto
+                </Link>
+              </div>
+            </div>
+
+            {/* Pływająca podglądowa karta — ilustracja, nie realne dane;
+                daje efekt głębi 3D już w pierwszym wrażeniu. */}
+            <div
+              className="animate-rise hidden lg:block"
+              style={{ animationDelay: "160ms" }}
+            >
+              <TiltCard className="rounded-2xl border border-border bg-canvas-raised p-6">
+                <p className="text-xs font-medium text-ink-muted">
+                  Podgląd miesiąca
+                </p>
+                <p className="tabular mt-2 font-display text-4xl text-ink">
+                  4 280,00 zł
+                </p>
+                <div className="mt-6 space-y-3">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-2 text-ink-muted">
+                      <ArrowUpRightIcon className="h-3.5 w-3.5 text-positive" />
+                      Przychody
+                    </span>
+                    <span className="tabular text-positive-strong">
+                      6 100,00 zł
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-2 text-ink-muted">
+                      <ArrowDownRightIcon className="h-3.5 w-3.5 text-negative" />
+                      Wydatki
+                    </span>
+                    <span className="tabular text-negative-strong">
+                      1 820,00 zł
+                    </span>
+                  </div>
+                </div>
+              </TiltCard>
             </div>
           </div>
 
           <div
             className="animate-rise mt-24 flex flex-col gap-8 border-t border-border pt-8 sm:flex-row sm:gap-0 sm:divide-x sm:divide-border"
-            style={{ animationDelay: "120ms" }}
+            style={{ animationDelay: "260ms" }}
           >
             <p className="flex items-start gap-3 text-sm leading-relaxed text-ink-muted sm:w-1/3 sm:pr-8">
               <LockIcon className="mt-0.5 h-4 w-4 shrink-0 text-accent" />

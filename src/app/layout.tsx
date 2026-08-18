@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Instrument_Serif, IBM_Plex_Sans } from "next/font/google";
+import ThemeScript from "@/components/theme-script";
 import "./globals.css";
 
 const displaySerif = Instrument_Serif({
@@ -26,7 +27,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="pl"
       className={`${displaySerif.variable} ${uiSans.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
+      <head>
+        <ThemeScript />
+      </head>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
