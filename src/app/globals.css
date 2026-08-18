@@ -1,32 +1,139 @@
 @import "tailwindcss";
 
+/*
+  Kierunek wizualny "Vault" — prywatna, ciemna estetyka premium inspirowana
+  bankowością prywatną (Mercury, Ramp, Ledger): antracytowe tło, ciepła
+  kremowa biel tekstu, jeden akcent w złocie. Serif do liczb i nagłówków,
+  czysty grotesk do interfejsu. Świadomie jeden, spójny (ciemny) motyw —
+  budżet domowy to coś prywatnego, przeglądane wieczorami, nie publiczna
+  strona wymagająca trybu jasnego.
+*/
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --canvas: #0b0c0e;
+  --canvas-raised: #141619;
+  --surface: #1a1d21;
+  --surface-hover: #21252a;
+  --border: rgba(240, 234, 222, 0.09);
+  --border-strong: rgba(240, 234, 222, 0.16);
+  --ink: #f0eade;
+  --ink-muted: #a19a8c;
+  --ink-faint: #6d685f;
+  --accent: #c9a45c;
+  --accent-strong: #e4c17e;
+  --accent-ink: #17140c;
+  --positive: #8fae86;
+  --positive-strong: #a9c79f;
+  --negative: #c77b63;
+  --negative-strong: #dd9679;
+
+  --background: var(--canvas);
+  --foreground: var(--ink);
 }
 
 @theme inline {
+  --color-canvas: var(--canvas);
+  --color-canvas-raised: var(--canvas-raised);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-ink: var(--accent-ink);
+  --color-positive: var(--positive);
+  --color-positive-strong: var(--positive-strong);
+  --color-negative: var(--negative);
+  --color-negative-strong: var(--negative-strong);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-display);
+  --font-ui: var(--font-ui);
 }
-
-/* Ta aplikacja ma na razie tylko jasny motyw (białe/jasnoszare tła
-   wszędzie w komponentach). Celowo NIE przełączamy --foreground na jasny
-   kolor w prefers-color-scheme: dark — inaczej tekst w polach formularzy
-   (białe tło na sztywno) staje się nieczytelny na urządzeniach z ciemnym
-   motywem systemowym. */
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-ui), system-ui, sans-serif;
 }
 
+/* Pola formularzy: zawsze jasne tło + ciemny tekst, niezależnie od reszty
+   ciemnego motywu — to jedyne miejsce, gdzie użytkownik wpisuje dane, i ma
+   być czytelne pod każdym kątem. */
 input,
 select,
 textarea {
-  color: var(--foreground);
-  background-color: #ffffff;
+  color: #171412;
+  background-color: #f0eade;
+  font-family: var(--font-ui), system-ui, sans-serif;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #8a8378;
+}
+
+/* Numery kwot wyrównane do siebie w kolumnie — cyfry tabelaryczne, nie
+   kostium monospace. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Subtelna ziarnista tekstura na płótnie — odróżnia "Vault" od płaskiego
+   gradientu, bez przesady. */
+.grain {
+  position: relative;
+  isolation: isolate;
+}
+.grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.35;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+::-webkit-scrollbar-track {
+  background: var(--canvas);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--surface-hover);
+  border-radius: 999px;
+  border: 3px solid var(--canvas);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-strong);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-rise {
+  animation: rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
+import { TrashIcon } from "@/components/icons";
 import { deleteTransaction } from "./actions";
 
 export default function DeleteButton({ id }: { id: string }) {
@@ -10,10 +11,10 @@ export default function DeleteButton({ id }: { id: string }) {
     <button
       disabled={isPending}
       onClick={() => startTransition(() => deleteTransaction(id))}
-      className="text-xs text-slate-400 hover:text-red-600 disabled:opacity-50"
+      className="rounded-md p-1.5 text-ink-faint transition-colors hover:bg-negative/10 hover:text-negative-strong disabled:opacity-50"
       aria-label="Usuń transakcję"
     >
-      Usuń
+      <TrashIcon className="h-4 w-4" />
     </button>
   );
 }

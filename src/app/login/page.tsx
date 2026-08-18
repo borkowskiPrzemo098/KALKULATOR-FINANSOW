@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { MarkIcon } from "@/components/icons";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -35,61 +36,84 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
-      <div className="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
-        <h1 className="mb-1 text-2xl font-semibold text-slate-900">
-          Zaloguj się
-        </h1>
-        <p className="mb-6 text-sm text-slate-500">
-          Kalkulator Finansów Rodzinnych
-        </p>
+    <div className="grain relative flex min-h-screen items-center justify-center overflow-hidden bg-canvas px-4">
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(45rem 32rem at 50% -10%, rgba(201,164,92,0.14), transparent 60%)",
+        }}
+      />
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">
-              Login
-            </label>
-            <input
-              type="text"
-              required
-              autoComplete="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">
-              Hasło
-            </label>
-            <input
-              type="password"
-              required
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
-            />
-          </div>
+      <div className="animate-rise relative w-full max-w-sm">
+        <Link
+          href="/"
+          className="mb-8 flex items-center justify-center gap-2 text-ink-muted transition-colors hover:text-ink"
+        >
+          <MarkIcon className="h-5 w-5 text-accent" />
+          <span className="text-xs font-medium tracking-wide">
+            Kalkulator Finansów Rodzinnych
+          </span>
+        </Link>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+        <div className="rounded-2xl border border-border bg-canvas-raised p-8 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.6)]">
+          <h1 className="font-display text-3xl text-ink">Zaloguj się</h1>
+          <p className="mt-1.5 text-sm text-ink-muted">
+            Wpisz login i hasło do swojego budżetu.
+          </p>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-lg bg-slate-900 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
-          >
-            {loading ? "Logowanie..." : "Zaloguj się"}
-          </button>
-        </form>
+          <form onSubmit={handleSubmit} className="mt-7 space-y-4">
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-ink-muted">
+                Login
+              </label>
+              <input
+                type="text"
+                required
+                autoComplete="username"
+                autoFocus
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full rounded-lg border border-border-strong px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-accent"
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-ink-muted">
+                Hasło
+              </label>
+              <input
+                type="password"
+                required
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full rounded-lg border border-border-strong px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-accent"
+              />
+            </div>
 
-        <p className="mt-4 text-center text-xs text-slate-400">
-          Zapomniałeś hasła? Poproś administratora o reset.
-        </p>
+            {error && (
+              <p className="rounded-lg bg-negative/10 px-3 py-2 text-sm text-negative-strong">
+                {error}
+              </p>
+            )}
 
-        <p className="mt-6 text-center text-sm text-slate-500">
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-lg bg-accent py-2.5 text-sm font-semibold text-accent-ink transition-colors hover:bg-accent-strong disabled:opacity-50"
+            >
+              {loading ? "Logowanie…" : "Zaloguj się"}
+            </button>
+          </form>
+
+          <p className="mt-5 text-center text-xs text-ink-faint">
+            Zapomniałeś hasła? Poproś administratora o reset.
+          </p>
+        </div>
+
+        <p className="mt-6 text-center text-sm text-ink-muted">
           Nie masz konta?{" "}
-          <Link href="/signup" className="font-medium text-slate-900 underline">
+          <Link href="/signup" className="font-medium text-accent hover:text-accent-strong">
             Zarejestruj się
           </Link>
         </p>

@@ -40,7 +40,7 @@ export default function ResetPasswordForm({ userId }: { userId: string }) {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-100"
+        className="self-start rounded-full border border-border-strong px-3.5 py-1.5 text-sm text-ink-muted transition-colors hover:border-accent hover:text-accent"
       >
         Resetuj hasło
       </button>
@@ -48,7 +48,7 @@ export default function ResetPasswordForm({ userId }: { userId: string }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-center gap-2">
+    <form onSubmit={handleSubmit} className="flex flex-wrap items-center gap-2">
       <input
         type="password"
         required
@@ -56,23 +56,23 @@ export default function ResetPasswordForm({ userId }: { userId: string }) {
         placeholder="Nowe hasło (min. 8 znaków)"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-        className="w-48 rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
+        className="w-48 rounded-lg border border-border-strong px-2.5 py-1.5 text-sm"
       />
       <button
         type="submit"
         disabled={status === "saving"}
-        className="rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
+        className="rounded-lg bg-accent px-3 py-1.5 text-sm font-semibold text-accent-ink transition-colors hover:bg-accent-strong disabled:opacity-50"
       >
-        {status === "saving" ? "..." : status === "done" ? "✓" : "Zapisz"}
+        {status === "saving" ? "…" : status === "done" ? "✓" : "Zapisz"}
       </button>
       <button
         type="button"
         onClick={() => setOpen(false)}
-        className="text-sm text-slate-400 hover:text-slate-700"
+        className="text-sm text-ink-faint hover:text-ink-muted"
       >
         Anuluj
       </button>
-      {error && <span className="text-xs text-red-600">{error}</span>}
+      {error && <span className="w-full text-xs text-negative-strong">{error}</span>}
     </form>
   );
 }

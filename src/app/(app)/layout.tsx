@@ -1,6 +1,8 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { MarkIcon, ShieldIcon } from "@/components/icons";
 import LogoutButton from "./logout-button";
 
 export default async function AppLayout({
@@ -23,27 +25,33 @@ export default async function AppLayout({
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4">
-          <span className="font-semibold text-slate-900">
-            Kalkulator Finansów Rodzinnych
-          </span>
-          <div className="flex items-center gap-4">
+    <div className="min-h-screen bg-canvas">
+      <header className="border-b border-border">
+        <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-5">
+          <Link href="/dashboard" className="flex items-center gap-2.5 text-ink">
+            <MarkIcon className="h-5 w-5 text-accent" />
+            <span className="font-display text-lg italic">
+              Kalkulator Finansów
+            </span>
+          </Link>
+          <div className="flex items-center gap-5">
             {user.isAdmin && (
-              <a
+              <Link
                 href="/admin/users"
-                className="text-sm text-slate-500 hover:text-slate-900"
+                className="flex items-center gap-1.5 text-sm text-ink-muted transition-colors hover:text-accent"
               >
+                <ShieldIcon className="h-4 w-4" />
                 Panel admina
-              </a>
+              </Link>
             )}
-            <span className="text-sm text-slate-500">{user.displayName}</span>
+            <span className="hidden text-sm text-ink-muted sm:inline">
+              {user.displayName}
+            </span>
             <LogoutButton />
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-4xl px-4 py-8">{children}</main>
+      <main className="mx-auto max-w-4xl px-6 py-10">{children}</main>
     </div>
   );
 }

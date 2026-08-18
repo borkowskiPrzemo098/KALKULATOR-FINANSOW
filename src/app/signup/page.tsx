@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { MarkIcon } from "@/components/icons";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -40,72 +41,95 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
-      <div className="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
-        <h1 className="mb-1 text-2xl font-semibold text-slate-900">
-          Załóż konto
-        </h1>
-        <p className="mb-6 text-sm text-slate-500">
-          Kalkulator Finansów Rodzinnych — bez e-maila, tylko login i hasło
-        </p>
+    <div className="grain relative flex min-h-screen items-center justify-center overflow-hidden bg-canvas px-4">
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(45rem 32rem at 50% -10%, rgba(201,164,92,0.14), transparent 60%)",
+        }}
+      />
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">
-              Login
-            </label>
-            <input
-              type="text"
-              required
-              autoComplete="username"
-              pattern="[a-zA-Z0-9_.\-]{3,32}"
-              title="3-32 znaki: litery, cyfry, kropka, myślnik, podkreślnik"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">
-              Wyświetlana nazwa (opcjonalnie)
-            </label>
-            <input
-              type="text"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="np. Rodzina Kowalskich"
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">
-              Hasło (min. 8 znaków)
-            </label>
-            <input
-              type="password"
-              required
-              minLength={8}
-              autoComplete="new-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500"
-            />
-          </div>
+      <div className="animate-rise relative w-full max-w-sm">
+        <Link
+          href="/"
+          className="mb-8 flex items-center justify-center gap-2 text-ink-muted transition-colors hover:text-ink"
+        >
+          <MarkIcon className="h-5 w-5 text-accent" />
+          <span className="text-xs font-medium tracking-wide">
+            Kalkulator Finansów Rodzinnych
+          </span>
+        </Link>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+        <div className="rounded-2xl border border-border bg-canvas-raised p-8 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.6)]">
+          <h1 className="font-display text-3xl text-ink">Załóż konto</h1>
+          <p className="mt-1.5 text-sm text-ink-muted">
+            Bez e-maila — tylko login i hasło.
+          </p>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-lg bg-slate-900 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-50"
-          >
-            {loading ? "Tworzenie konta..." : "Zarejestruj się"}
-          </button>
-        </form>
+          <form onSubmit={handleSubmit} className="mt-7 space-y-4">
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-ink-muted">
+                Login
+              </label>
+              <input
+                type="text"
+                required
+                autoComplete="username"
+                autoFocus
+                pattern="[a-zA-Z0-9_.\-]{3,32}"
+                title="3-32 znaki: litery, cyfry, kropka, myślnik, podkreślnik"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full rounded-lg border border-border-strong px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-accent"
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-ink-muted">
+                Wyświetlana nazwa (opcjonalnie)
+              </label>
+              <input
+                type="text"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="np. Rodzina Kowalskich"
+                className="w-full rounded-lg border border-border-strong px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-accent"
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-ink-muted">
+                Hasło (min. 8 znaków)
+              </label>
+              <input
+                type="password"
+                required
+                minLength={8}
+                autoComplete="new-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full rounded-lg border border-border-strong px-3.5 py-2.5 text-sm outline-none transition-colors focus:border-accent"
+              />
+            </div>
 
-        <p className="mt-6 text-center text-sm text-slate-500">
+            {error && (
+              <p className="rounded-lg bg-negative/10 px-3 py-2 text-sm text-negative-strong">
+                {error}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-lg bg-accent py-2.5 text-sm font-semibold text-accent-ink transition-colors hover:bg-accent-strong disabled:opacity-50"
+            >
+              {loading ? "Tworzenie konta…" : "Zarejestruj się"}
+            </button>
+          </form>
+        </div>
+
+        <p className="mt-6 text-center text-sm text-ink-muted">
           Masz już konto?{" "}
-          <Link href="/login" className="font-medium text-slate-900 underline">
+          <Link href="/login" className="font-medium text-accent hover:text-accent-strong">
             Zaloguj się
           </Link>
         </p>
