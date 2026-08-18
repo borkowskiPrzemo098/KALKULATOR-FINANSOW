@@ -28,11 +28,11 @@ export default async function RecurringPage() {
     <div className="space-y-10">
       <div className="flex items-center gap-2 text-ink">
         <RepeatIcon className="h-5 w-5 text-accent" />
-        <h1 className="font-display text-2xl italic">Transakcje cykliczne</h1>
+        <h1 className="font-display font-semibold tracking-tight text-2xl">Transakcje cykliczne</h1>
       </div>
 
       <div className="elevated rounded-2xl border border-border bg-canvas-raised p-6">
-        <h2 className="font-display text-xl italic text-ink">Nowa reguła</h2>
+        <h2 className="font-display font-semibold tracking-tight text-xl text-ink">Nowa reguła</h2>
         <p className="mt-1 text-sm text-ink-muted">
           Powtarza się co miesiąc, tego samego dnia — np. czynsz, subskrypcje, wypłata.
         </p>
@@ -42,7 +42,7 @@ export default async function RecurringPage() {
       </div>
 
       <div className="elevated rounded-2xl border border-border bg-canvas-raised">
-        <h2 className="border-b border-border px-6 py-5 font-display text-xl italic text-ink">
+        <h2 className="border-b border-border px-6 py-5 font-display font-semibold tracking-tight text-xl text-ink">
           Aktywne reguły
         </h2>
         {rules.length === 0 ? (

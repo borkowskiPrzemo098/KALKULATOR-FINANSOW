@@ -41,10 +41,10 @@ export default function Home() {
         <main className="flex flex-1 flex-col justify-center py-16">
           <div className="grid items-center gap-16 lg:grid-cols-[1.1fr_0.9fr]">
             <div className="animate-rise max-w-xl">
-              <h1 className="font-display text-6xl leading-[1.05] text-ink sm:text-7xl">
+              <h1 className="font-display text-6xl font-semibold leading-[1.05] tracking-tight text-ink sm:text-7xl">
                 Prywatny budżet
                 <br />
-                <span className="italic text-ink-muted">rodzinny.</span>
+                <span className="text-ink-muted">rodzinny.</span>
               </h1>
               <p className="mt-7 max-w-xl text-lg leading-relaxed text-ink-muted">
                 Koniec z rozjeżdżającym się Excelem. Jeden kalkulator budżetu
@@ -79,7 +79,7 @@ export default function Home() {
                 <p className="text-xs font-medium text-ink-muted">
                   Podgląd miesiąca
                 </p>
-                <p className="tabular mt-2 font-display text-4xl text-ink">
+                <p className="tabular mt-2 font-display text-4xl font-semibold tracking-tight text-ink">
                   4 280,00 zł
                 </p>
                 <div className="mt-6 space-y-3">

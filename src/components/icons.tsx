@@ -53,6 +53,15 @@ export function TrashIcon({ className, style }: IconProps) {
   );
 }
 
+export function PencilIcon({ className, style }: IconProps) {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" className={className} style={style} aria-hidden="true">
+      <path d="M12.6 3.4a1.6 1.6 0 012.3 0l1.7 1.7a1.6 1.6 0 010 2.3L6.5 17.5l-4 1 1-4L12.6 3.4z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+      <path d="M11 5l3.5 3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function ShieldIcon({ className, style }: IconProps) {
   return (
     <svg viewBox="0 0 20 20" fill="none" className={className} style={style} aria-hidden="true">

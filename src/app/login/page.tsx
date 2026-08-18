@@ -62,7 +62,7 @@ export default function LoginPage() {
         </div>
 
         <TiltCard className="rounded-2xl border border-border bg-canvas-raised p-8">
-          <h1 className="font-display text-3xl text-ink">Zaloguj się</h1>
+          <h1 className="font-display text-3xl font-semibold tracking-tight text-ink">Zaloguj się</h1>
           <p className="mt-1.5 text-sm text-ink-muted">
             Wpisz login i hasło do swojego budżetu.
           </p>

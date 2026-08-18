@@ -29,6 +29,11 @@
 
   --background: var(--canvas);
   --foreground: var(--ink);
+
+  /* Jedna rodzina na całą aplikację, w stylu Apple — krój systemowy
+     (Helvetica Neue / SF Pro) zamiast pobieranego webfontu. */
+  --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+    "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
 :root[data-theme="light"] {
@@ -70,8 +75,8 @@
   --color-negative-strong: var(--negative-strong);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-display: var(--font-display);
-  --font-ui: var(--font-ui);
+  --font-display: var(--font-stack);
+  --font-ui: var(--font-stack);
 }
 
 html,
@@ -85,7 +90,7 @@ body {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-ui), system-ui, sans-serif;
+  font-family: var(--font-stack);
   transition: background-color 0.35s ease, color 0.35s ease;
 }
 
@@ -97,7 +102,7 @@ select,
 textarea {
   color: #171412;
   background-color: #f0eade;
-  font-family: var(--font-ui), system-ui, sans-serif;
+  font-family: var(--font-stack);
 }
 
 input::placeholder,

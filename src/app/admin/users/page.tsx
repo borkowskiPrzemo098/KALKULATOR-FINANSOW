@@ -3,7 +3,9 @@ import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { MarkIcon, ShieldIcon } from "@/components/icons";
+import MobileNav from "@/components/mobile-nav";
 import ResetPasswordForm from "./reset-password-form";
+import DeleteUserButton from "./delete-user-button";
 
 export default async function AdminUsersPage() {
   const admin = await requireAdmin();
@@ -22,7 +24,7 @@ export default async function AdminUsersPage() {
         <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-5">
           <Link href="/dashboard" className="flex items-center gap-2.5 text-ink">
             <MarkIcon className="h-5 w-5 text-accent" />
-            <span className="font-display text-lg italic">
+            <span className="font-display font-semibold tracking-tight text-lg">
               Kalkulator Finansów
             </span>
           </Link>
@@ -34,10 +36,10 @@ export default async function AdminUsersPage() {
           </Link>
         </div>
       </header>
-      <main className="mx-auto max-w-4xl px-6 py-10">
+      <main className="mx-auto max-w-4xl px-6 py-10 pb-28 sm:pb-10">
         <div className="mb-6 flex items-center gap-2 text-ink">
           <ShieldIcon className="h-5 w-5 text-accent" />
-          <h1 className="font-display text-2xl italic">Panel admina</h1>
+          <h1 className="font-display font-semibold tracking-tight text-2xl">Panel admina</h1>
         </div>
 
         <div className="elevated rounded-2xl border border-border bg-canvas-raised">
@@ -61,12 +63,20 @@ export default async function AdminUsersPage() {
                   </p>
                   <p className="text-xs text-ink-faint">@{u.username}</p>
                 </div>
-                <ResetPasswordForm userId={u.id} />
+                <div className="flex items-center gap-2">
+                  <ResetPasswordForm userId={u.id} />
+                  <DeleteUserButton
+                    userId={u.id}
+                    displayName={u.displayName}
+                    isSelf={u.id === admin.userId}
+                  />
+                </div>
               </li>
             ))}
           </ul>
         </div>
       </main>
+      <MobileNav isAdmin />
     </div>
   );
 }

@@ -35,6 +35,41 @@ export async function addTransaction(formData: FormData) {
   revalidatePath("/dashboard");
 }
 
+export type UpdateTransactionInput = {
+  type: string;
+  amount: number;
+  description: string | null;
+  occurredOn: string;
+  categoryId: string | null;
+};
+
+export async function updateTransaction(id: string, input: UpdateTransactionInput) {
+  const session = await getSession();
+  if (!session) throw new Error("Musisz być zalogowany.");
+
+  if (!["income", "expense"].includes(input.type)) {
+    throw new Error("Nieprawidłowy typ transakcji.");
+  }
+  if (!input.amount || input.amount <= 0) {
+    throw new Error("Kwota musi być większa od zera.");
+  }
+
+  // updateMany + filtr po userId — użytkownik nie może edytować cudzej
+  // transakcji, nawet znając jej id.
+  await prisma.transaction.updateMany({
+    where: { id, userId: session.userId },
+    data: {
+      type: input.type,
+      amount: input.amount,
+      description: input.description,
+      categoryId: input.categoryId,
+      occurredOn: new Date(input.occurredOn),
+    },
+  });
+
+  revalidatePath("/dashboard");
+}
+
 export async function deleteTransaction(id: string) {
   const session = await getSession();
   if (!session) throw new Error("Musisz być zalogowany.");

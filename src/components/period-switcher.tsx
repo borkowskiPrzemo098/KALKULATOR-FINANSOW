@@ -60,7 +60,7 @@ export default function PeriodSwitcher({
         >
           <ChevronLeftIcon className="h-4 w-4" />
         </button>
-        <span className="min-w-[9rem] text-center font-display text-lg italic text-ink">
+        <span className="min-w-[9rem] text-center font-display font-semibold tracking-tight text-lg text-ink">
           {label}
         </span>
         <button

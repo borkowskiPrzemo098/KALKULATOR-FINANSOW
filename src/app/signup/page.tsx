@@ -67,7 +67,7 @@ export default function SignupPage() {
         </div>
 
         <TiltCard className="rounded-2xl border border-border bg-canvas-raised p-8">
-          <h1 className="font-display text-3xl text-ink">Załóż konto</h1>
+          <h1 className="font-display text-3xl font-semibold tracking-tight text-ink">Załóż konto</h1>
           <p className="mt-1.5 text-sm text-ink-muted">
             Bez e-maila — tylko login i hasło.
           </p>

@@ -21,11 +21,11 @@ export default async function CategoriesPage() {
     <div className="space-y-10">
       <div className="flex items-center gap-2 text-ink">
         <TagIcon className="h-5 w-5 text-accent" />
-        <h1 className="font-display text-2xl italic">Kategorie</h1>
+        <h1 className="font-display font-semibold tracking-tight text-2xl">Kategorie</h1>
       </div>
 
       <div className="elevated rounded-2xl border border-border bg-canvas-raised p-6">
-        <h2 className="font-display text-xl italic text-ink">Nowa kategoria</h2>
+        <h2 className="font-display font-semibold tracking-tight text-xl text-ink">Nowa kategoria</h2>
         <div className="mt-5">
           <CategoryForm />
         </div>
@@ -36,7 +36,7 @@ export default async function CategoriesPage() {
         { title: "Przychody", list: income, withLimit: false },
       ].map(({ title, list, withLimit }) => (
         <div key={title} className="elevated rounded-2xl border border-border bg-canvas-raised">
-          <h2 className="border-b border-border px-6 py-5 font-display text-xl italic text-ink">
+          <h2 className="border-b border-border px-6 py-5 font-display font-semibold tracking-tight text-xl text-ink">
             {title}
           </h2>
           {list.length === 0 ? (

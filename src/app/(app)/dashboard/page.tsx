@@ -8,7 +8,7 @@ import TiltCard from "@/components/tilt-card";
 import PeriodSwitcher from "@/components/period-switcher";
 import PieChart from "@/components/pie-chart";
 import { addTransaction } from "./actions";
-import DeleteButton from "./delete-button";
+import TransactionRow from "./transaction-row";
 
 function formatPLN(value: number) {
   return new Intl.NumberFormat("pl-PL", {
@@ -70,17 +70,23 @@ export default async function DashboardPage({
   const balance = income - expense;
 
   // Podział wydatków po kategoriach w wybranym okresie — dane wykresu.
-  const expenseByCategory = new Map<string, { label: string; value: number; color: string }>();
+  const expenseByCategory = new Map<
+    string,
+    { label: string; value: number; color: string; icon: string; count: number }
+  >();
   for (const t of transactions) {
     if (t.type !== "expense") continue;
     const key = t.category?.id ?? "none";
     const label = t.category?.name ?? "Bez kategorii";
     const color = t.category?.color ?? FALLBACK_COLOR;
+    const icon = t.category?.icon ?? "other";
     const prev = expenseByCategory.get(key);
     expenseByCategory.set(key, {
       label,
       color,
+      icon,
       value: (prev?.value ?? 0) + Number(t.amount),
+      count: (prev?.count ?? 0) + 1,
     });
   }
   const pieData = [...expenseByCategory.values()].sort((a, b) => b.value - a.value);
@@ -121,7 +127,7 @@ export default async function DashboardPage({
             <ArrowUpRightIcon className="h-3.5 w-3.5 text-positive" />
             Przychody
           </div>
-          <p className="tabular mt-2.5 font-display text-3xl text-positive-strong">
+          <p className="tabular mt-2.5 font-display text-3xl font-semibold tracking-tight text-positive-strong">
             {formatPLN(income)}
           </p>
         </div>
@@ -130,13 +136,13 @@ export default async function DashboardPage({
             <ArrowDownRightIcon className="h-3.5 w-3.5 text-negative" />
             Wydatki
           </div>
-          <p className="tabular mt-2.5 font-display text-3xl text-negative-strong">
+          <p className="tabular mt-2.5 font-display text-3xl font-semibold tracking-tight text-negative-strong">
             {formatPLN(expense)}
           </p>
         </div>
         <div className="p-6">
           <div className="text-xs font-medium text-ink-muted">Bilans</div>
-          <p className="tabular mt-2.5 font-display text-3xl text-ink">
+          <p className="tabular mt-2.5 font-display text-3xl font-semibold tracking-tight text-ink">
             {formatPLN(balance)}
           </p>
         </div>
@@ -145,7 +151,7 @@ export default async function DashboardPage({
       {budgets.length > 0 && (
         <div className="elevated rounded-2xl border border-border bg-canvas-raised p-6">
           <div className="flex items-center justify-between">
-            <h2 className="font-display text-xl italic text-ink">
+            <h2 className="font-display font-semibold tracking-tight text-xl text-ink">
               Budżety miesięczne
             </h2>
             <span className="text-xs text-ink-faint">bieżący miesiąc</span>
@@ -182,7 +188,7 @@ export default async function DashboardPage({
       )}
 
       <div className="elevated rounded-2xl border border-border bg-canvas-raised p-6">
-        <h2 className="font-display text-xl italic text-ink">
+        <h2 className="font-display font-semibold tracking-tight text-xl text-ink">
           Wydatki wg kategorii
         </h2>
         <div className="mt-6 flex justify-center sm:justify-start">
@@ -192,7 +198,7 @@ export default async function DashboardPage({
 
       <div className="elevated rounded-2xl border border-border bg-canvas-raised p-6">
         <div className="flex items-center justify-between">
-          <h2 className="font-display text-xl italic text-ink">
+          <h2 className="font-display font-semibold tracking-tight text-xl text-ink">
             Dodaj transakcję
           </h2>
           <Link href="/categories" className="flex items-center gap-1 text-xs text-ink-muted hover:text-accent">
@@ -286,7 +292,7 @@ export default async function DashboardPage({
       </div>
 
       <div className="elevated rounded-2xl border border-border bg-canvas-raised">
-        <h2 className="border-b border-border px-6 py-5 font-display text-xl italic text-ink">
+        <h2 className="border-b border-border px-6 py-5 font-display font-semibold tracking-tight text-xl text-ink">
           Transakcje — {periodLabel.toLowerCase()}
         </h2>
         {transactions.length === 0 ? (
@@ -296,49 +302,27 @@ export default async function DashboardPage({
         ) : (
           <ul className="divide-y divide-border">
             {transactions.map((t) => (
-              <li
+              <TransactionRow
                 key={t.id}
-                className="flex items-center justify-between gap-4 px-6 py-3.5"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <span
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
-                    style={
-                      t.category
-                        ? { backgroundColor: `${t.category.color}26`, color: t.category.color }
-                        : undefined
-                    }
-                  >
-                    {t.category ? (
-                      <CategoryIcon icon={t.category.icon} className="h-4 w-4" />
-                    ) : t.type === "income" ? (
-                      <ArrowUpRightIcon className="h-4 w-4 text-positive" />
-                    ) : (
-                      <ArrowDownRightIcon className="h-4 w-4 text-negative" />
-                    )}
-                  </span>
-                  <div className="min-w-0">
-                    <p className="truncate text-sm text-ink">
-                      {t.description || "(bez opisu)"}
-                    </p>
-                    <p className="text-xs text-ink-faint">
-                      {t.occurredOn.toISOString().slice(0, 10)}
-                      {t.category ? ` · ${t.category.name}` : ""}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <span
-                    className={`tabular text-sm font-medium ${
-                      t.type === "income" ? "text-positive-strong" : "text-negative-strong"
-                    }`}
-                  >
-                    {t.type === "income" ? "+" : "−"}
-                    {formatPLN(Number(t.amount))}
-                  </span>
-                  <DeleteButton id={t.id} />
-                </div>
-              </li>
+                transaction={{
+                  id: t.id,
+                  type: t.type,
+                  amount: Number(t.amount),
+                  description: t.description,
+                  occurredOn: t.occurredOn.toISOString().slice(0, 10),
+                  categoryId: t.categoryId,
+                  category: t.category
+                    ? { icon: t.category.icon, color: t.category.color, name: t.category.name }
+                    : null,
+                }}
+                categories={categories.map((c) => ({
+                  id: c.id,
+                  name: c.name,
+                  type: c.type,
+                  icon: c.icon,
+                  color: c.color,
+                }))}
+              />
             ))}
           </ul>
         )}
