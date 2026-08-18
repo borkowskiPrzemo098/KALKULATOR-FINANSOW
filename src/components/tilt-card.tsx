@@ -19,6 +19,10 @@ export default function TiltCard({
   const ref = useRef<HTMLDivElement>(null);
 
   function handleMove(e: ReactPointerEvent<HTMLDivElement>) {
+    // Tylko prawdziwy kursor myszy — na dotyku (pointerType "touch") gest
+    // przewijania palcem po karcie byłby błędnie odczytany jako ruch
+    // kursora i przechylał kartę w trakcie scrollowania.
+    if (e.pointerType !== "mouse") return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const el = ref.current;
     if (!el) return;
@@ -32,7 +36,8 @@ export default function TiltCard({
     el.style.setProperty("--glow-y", `${py * 100}%`);
   }
 
-  function handleLeave() {
+  function handleLeave(e: ReactPointerEvent<HTMLDivElement>) {
+    if (e.pointerType !== "mouse") return;
     const el = ref.current;
     if (!el) return;
     el.style.transform = "perspective(900px) rotateX(0deg) rotateY(0deg)";
@@ -44,7 +49,10 @@ export default function TiltCard({
       onPointerMove={handleMove}
       onPointerLeave={handleLeave}
       className={`tilt-card ${className}`}
-      style={{ transition: "transform 0.4s cubic-bezier(0.16,1,0.3,1)" }}
+      style={{
+        transition: "transform 0.4s cubic-bezier(0.16,1,0.3,1)",
+        touchAction: "pan-y",
+      }}
     >
       {children}
     </div>
