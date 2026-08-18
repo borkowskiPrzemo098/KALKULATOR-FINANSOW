@@ -28,6 +28,11 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  await setSessionCookie({ userId: user.id, username: user.username });
+  await setSessionCookie({
+    userId: user.id,
+    username: user.username,
+    displayName: user.displayName,
+    isAdmin: user.isAdmin,
+  });
   return NextResponse.json({ ok: true });
 }

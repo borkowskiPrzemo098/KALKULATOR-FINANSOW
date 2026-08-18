@@ -1,11 +1,9 @@
 import { PrismaClient } from "@prisma/client";
 
-// Jeden współdzielony klient Prisma w trybie dev (unika wyczerpania puli
-// połączeń przy hot-reloadzie Next.js).
+// Jeden współdzielony klient Prisma na cały cykl życia instancji funkcji
+// serverless (i żeby uniknąć wyczerpania puli połączeń przy hot-reloadzie
+// Next.js w dev) — cache'owany zawsze, nie tylko w dev, dla bezpieczeństwa.
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
 export const prisma = globalForPrisma.prisma ?? new PrismaClient();
-
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
-}
+globalForPrisma.prisma = prisma;

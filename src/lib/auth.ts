@@ -8,6 +8,8 @@ const COOKIE_NAME = "kf_session";
 export interface SessionPayload {
   userId: string;
   username: string;
+  displayName: string;
+  isAdmin: boolean;
 }
 
 export function signSession(payload: SessionPayload): string {

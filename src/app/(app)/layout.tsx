@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 import { MarkIcon, ShieldIcon, TagIcon, RepeatIcon } from "@/components/icons";
 import ThemeToggle from "@/components/theme-toggle";
 import MobileNav from "@/components/mobile-nav";
@@ -17,15 +16,10 @@ export default async function AppLayout({
     redirect("/login");
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.userId },
-    select: { displayName: true, isAdmin: true },
-  });
-
-  if (!user) {
-    redirect("/login");
-  }
-
+  // Nazwa i uprawnienia admina są w podpisanej sesji (ustawione przy
+  // logowaniu) — bez dodatkowego zapytania do bazy przy KAŻDEJ nawigacji.
+  // To tylko wyświetlenie w interfejsie; każda faktyczna akcja admina
+  // i tak weryfikuje uprawnienia świeżo z bazy (patrz requireAdmin()).
   return (
     <div className="min-h-screen bg-canvas">
       <header className="border-b border-border">
@@ -37,7 +31,7 @@ export default async function AppLayout({
             </span>
           </Link>
           <div className="flex items-center gap-5">
-            {user.isAdmin && (
+            {session.isAdmin && (
               <Link
                 href="/admin/users"
                 className="flex items-center gap-1.5 text-sm text-ink-muted transition-colors hover:text-accent"
@@ -47,7 +41,7 @@ export default async function AppLayout({
               </Link>
             )}
             <span className="hidden text-sm text-ink-muted sm:inline">
-              {user.displayName}
+              {session.displayName || session.username}
             </span>
             <ThemeToggle />
             <LogoutButton />
@@ -68,7 +62,7 @@ export default async function AppLayout({
         </div>
       </header>
       <main className="mx-auto max-w-4xl px-6 py-10 pb-28 sm:pb-10">{children}</main>
-      <MobileNav isAdmin={user.isAdmin} />
+      <MobileNav isAdmin={session.isAdmin} />
     </div>
   );
 }
