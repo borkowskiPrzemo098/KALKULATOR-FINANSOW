@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import {
   CATEGORY_ICONS,
   CATEGORY_ICON_LABELS,
   type CategoryIconKey,
 } from "@/components/icons";
-import { addCategory } from "./actions";
 
 const PALETTE = [
   "#c9a45c", "#8fae86", "#c77b63", "#7a9bb8",
@@ -14,28 +14,47 @@ const PALETTE = [
 ];
 
 export default function CategoryForm() {
+  const router = useRouter();
   const [type, setType] = useState<"expense" | "income">("expense");
   const [icon, setIcon] = useState<CategoryIconKey>("other");
   const [color, setColor] = useState(PALETTE[0]);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  function handleSubmit(formData: FormData) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     setError(null);
+    const form = e.currentTarget;
+    const data = new FormData(form);
+
     startTransition(async () => {
-      try {
-        await addCategory(formData);
-        (document.getElementById("category-form") as HTMLFormElement)?.reset();
-        setIcon("other");
-        setColor(PALETTE[0]);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Nie udało się dodać kategorii.");
+      const res = await fetch("/api/categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: data.get("name"),
+          type: data.get("type"),
+          icon: data.get("icon"),
+          color: data.get("color"),
+          monthlyLimit: data.get("monthlyLimit"),
+        }),
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setError(body.error || "Nie udało się dodać kategorii.");
+        return;
       }
+
+      form.reset();
+      setIcon("other");
+      setColor(PALETTE[0]);
+      router.refresh();
     });
   }
 
   return (
-    <form id="category-form" action={handleSubmit} className="space-y-5">
+    <form id="category-form" onSubmit={handleSubmit} className="space-y-5">
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
           <label className="mb-1.5 block text-xs font-medium text-ink-muted">

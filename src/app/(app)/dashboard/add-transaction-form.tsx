@@ -2,16 +2,17 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { PlusIcon } from "@/components/icons";
 
 type Category = { id: string; name: string; type: string };
 
-export default function RecurringForm({ categories }: { categories: Category[] }) {
+export default function AddTransactionForm({ categories }: { categories: Category[] }) {
   const router = useRouter();
-  const [type, setType] = useState<"expense" | "income">("expense");
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  const filtered = categories.filter((c) => c.type === type);
+  const expenseCategories = categories.filter((c) => c.type === "expense");
+  const incomeCategories = categories.filter((c) => c.type === "income");
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -20,7 +21,7 @@ export default function RecurringForm({ categories }: { categories: Category[] }
     const data = new FormData(form);
 
     startTransition(async () => {
-      const res = await fetch("/api/recurring", {
+      const res = await fetch("/api/transactions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -28,13 +29,13 @@ export default function RecurringForm({ categories }: { categories: Category[] }
           amount: data.get("amount"),
           description: data.get("description"),
           categoryId: data.get("categoryId"),
-          dayOfMonth: data.get("dayOfMonth"),
+          occurredOn: data.get("occurred_on"),
         }),
       });
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        setError(body.error || "Nie udało się dodać.");
+        setError(body.error || "Nie udało się dodać transakcji.");
         return;
       }
 
@@ -44,13 +45,12 @@ export default function RecurringForm({ categories }: { categories: Category[] }
   }
 
   return (
-    <form id="recurring-form" onSubmit={handleSubmit} className="grid grid-cols-1 gap-3 sm:grid-cols-6 sm:items-end">
+    <form onSubmit={handleSubmit} className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-6 sm:items-end">
       <div className="sm:col-span-1">
         <label className="mb-1.5 block text-xs font-medium text-ink-muted">Typ</label>
         <select
           name="type"
-          value={type}
-          onChange={(e) => setType(e.target.value as "expense" | "income")}
+          defaultValue="expense"
           className="w-full rounded-lg border border-border-strong px-2.5 py-2.5 text-sm"
         >
           <option value="expense">Wydatek</option>
@@ -58,16 +58,22 @@ export default function RecurringForm({ categories }: { categories: Category[] }
         </select>
       </div>
       <div className="sm:col-span-1">
-        <label className="mb-1.5 block text-xs font-medium text-ink-muted">Kwota</label>
+        <label className="mb-1.5 block text-xs font-medium text-ink-muted">Kwota (PLN)</label>
         <input
-          type="number" name="amount" step="0.01" min="0.01" required
+          type="number"
+          name="amount"
+          step="0.01"
+          min="0.01"
+          required
           className="w-full rounded-lg border border-border-strong px-2.5 py-2.5 text-sm"
         />
       </div>
       <div className="sm:col-span-2">
         <label className="mb-1.5 block text-xs font-medium text-ink-muted">Opis</label>
         <input
-          type="text" name="description" placeholder="np. Czynsz"
+          type="text"
+          name="description"
+          placeholder="np. Zakupy spożywcze"
           className="w-full rounded-lg border border-border-strong px-2.5 py-2.5 text-sm"
         />
       </div>
@@ -75,15 +81,24 @@ export default function RecurringForm({ categories }: { categories: Category[] }
         <label className="mb-1.5 block text-xs font-medium text-ink-muted">Kategoria</label>
         <select name="categoryId" className="w-full rounded-lg border border-border-strong px-2.5 py-2.5 text-sm">
           <option value="">—</option>
-          {filtered.map((c) => (
-            <option key={c.id} value={c.id}>{c.name}</option>
-          ))}
+          <optgroup label="Wydatki">
+            {expenseCategories.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </optgroup>
+          <optgroup label="Przychody">
+            {incomeCategories.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </optgroup>
         </select>
       </div>
       <div className="sm:col-span-1">
-        <label className="mb-1.5 block text-xs font-medium text-ink-muted">Dzień mies.</label>
+        <label className="mb-1.5 block text-xs font-medium text-ink-muted">Data</label>
         <input
-          type="number" name="dayOfMonth" min="1" max="28" required defaultValue={1}
+          type="date"
+          name="occurred_on"
+          defaultValue={new Date().toISOString().slice(0, 10)}
           className="w-full rounded-lg border border-border-strong px-2.5 py-2.5 text-sm"
         />
       </div>
@@ -98,9 +113,10 @@ export default function RecurringForm({ categories }: { categories: Category[] }
         <button
           type="submit"
           disabled={isPending}
-          className="rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-accent-ink transition-colors hover:bg-accent-strong disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-accent-ink transition-colors hover:bg-accent-strong disabled:opacity-50"
         >
-          {isPending ? "Dodawanie…" : "Dodaj regułę"}
+          <PlusIcon className="h-4 w-4" />
+          {isPending ? "Dodawanie…" : "Dodaj"}
         </button>
       </div>
     </form>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { setCategoryLimit } from "./actions";
+import { useRouter } from "next/navigation";
 
 export default function LimitEditor({
   categoryId,
@@ -10,6 +10,7 @@ export default function LimitEditor({
   categoryId: string;
   initialLimit: number | null;
 }) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(initialLimit ? String(initialLimit) : "");
   const [isPending, startTransition] = useTransition();
@@ -17,8 +18,13 @@ export default function LimitEditor({
   function save() {
     startTransition(async () => {
       const num = value.trim() === "" ? null : Number(value);
-      await setCategoryLimit(categoryId, num && num > 0 ? num : null);
+      await fetch(`/api/categories/${categoryId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ monthlyLimit: num && num > 0 ? num : null }),
+      });
       setOpen(false);
+      router.refresh();
     });
   }
 

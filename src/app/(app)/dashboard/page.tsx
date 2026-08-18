@@ -3,11 +3,11 @@ import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ensureRecurringGenerated } from "@/lib/recurring";
 import { parsePeriodParams, getPeriodBounds, getPeriodLabel, isCurrentPeriod } from "@/lib/period";
-import { ArrowUpRightIcon, ArrowDownRightIcon, PlusIcon, CategoryIcon, TagIcon } from "@/components/icons";
+import { ArrowUpRightIcon, ArrowDownRightIcon, CategoryIcon, TagIcon } from "@/components/icons";
 import TiltCard from "@/components/tilt-card";
 import PeriodSwitcher from "@/components/period-switcher";
 import PieChart from "@/components/pie-chart";
-import { addTransaction } from "./actions";
+import AddTransactionForm from "./add-transaction-form";
 import TransactionRow from "./transaction-row";
 
 function formatPLN(value: number) {
@@ -108,9 +108,6 @@ export default async function DashboardPage({
       spent: spentByCategory.get(c.id) ?? 0,
     }));
 
-  const expenseCategories = categories.filter((c) => c.type === "expense");
-  const incomeCategories = categories.filter((c) => c.type === "income");
-
   return (
     <div className="space-y-10">
       <PeriodSwitcher
@@ -206,89 +203,7 @@ export default async function DashboardPage({
             Zarządzaj kategoriami
           </Link>
         </div>
-        <form
-          action={addTransaction}
-          className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-6 sm:items-end"
-        >
-          <div className="sm:col-span-1">
-            <label className="mb-1.5 block text-xs font-medium text-ink-muted">
-              Typ
-            </label>
-            <select
-              name="type"
-              defaultValue="expense"
-              className="w-full rounded-lg border border-border-strong px-2.5 py-2.5 text-sm"
-            >
-              <option value="expense">Wydatek</option>
-              <option value="income">Przychód</option>
-            </select>
-          </div>
-          <div className="sm:col-span-1">
-            <label className="mb-1.5 block text-xs font-medium text-ink-muted">
-              Kwota (PLN)
-            </label>
-            <input
-              type="number"
-              name="amount"
-              step="0.01"
-              min="0.01"
-              required
-              className="w-full rounded-lg border border-border-strong px-2.5 py-2.5 text-sm"
-            />
-          </div>
-          <div className="sm:col-span-2">
-            <label className="mb-1.5 block text-xs font-medium text-ink-muted">
-              Opis
-            </label>
-            <input
-              type="text"
-              name="description"
-              placeholder="np. Zakupy spożywcze"
-              className="w-full rounded-lg border border-border-strong px-2.5 py-2.5 text-sm"
-            />
-          </div>
-          <div className="sm:col-span-1">
-            <label className="mb-1.5 block text-xs font-medium text-ink-muted">
-              Kategoria
-            </label>
-            <select
-              name="categoryId"
-              className="w-full rounded-lg border border-border-strong px-2.5 py-2.5 text-sm"
-            >
-              <option value="">—</option>
-              <optgroup label="Wydatki">
-                {expenseCategories.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </optgroup>
-              <optgroup label="Przychody">
-                {incomeCategories.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </optgroup>
-            </select>
-          </div>
-          <div className="sm:col-span-1">
-            <label className="mb-1.5 block text-xs font-medium text-ink-muted">
-              Data
-            </label>
-            <input
-              type="date"
-              name="occurred_on"
-              defaultValue={new Date().toISOString().slice(0, 10)}
-              className="w-full rounded-lg border border-border-strong px-2.5 py-2.5 text-sm"
-            />
-          </div>
-          <div className="sm:col-span-6">
-            <button
-              type="submit"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-accent-ink transition-colors hover:bg-accent-strong"
-            >
-              <PlusIcon className="h-4 w-4" />
-              Dodaj
-            </button>
-          </div>
-        </form>
+        <AddTransactionForm categories={categories} />
       </div>
 
       <div className="elevated rounded-2xl border border-border bg-canvas-raised">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import {
   ArrowUpRightIcon,
   ArrowDownRightIcon,
@@ -8,7 +9,6 @@ import {
   PencilIcon,
   TrashIcon,
 } from "@/components/icons";
-import { updateTransaction, deleteTransaction } from "./actions";
 
 type Category = { id: string; name: string; type: string; icon: string; color: string };
 
@@ -33,6 +33,7 @@ export default function TransactionRow({
   transaction: TransactionRowData;
   categories: Category[];
 }) {
+  const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [type, setType] = useState(transaction.type);
   const [amount, setAmount] = useState(String(transaction.amount));
@@ -48,18 +49,31 @@ export default function TransactionRow({
   function save() {
     setError(null);
     startTransition(async () => {
-      try {
-        await updateTransaction(t.id, {
+      const res = await fetch(`/api/transactions/${t.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           type,
           amount: Number(amount),
           description: description || null,
           occurredOn,
           categoryId: categoryId || null,
-        });
-        setEditing(false);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Nie udało się zapisać.");
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setError(body.error || "Nie udało się zapisać.");
+        return;
       }
+      setEditing(false);
+      router.refresh();
+    });
+  }
+
+  function remove() {
+    startTransition(async () => {
+      await fetch(`/api/transactions/${t.id}`, { method: "DELETE" });
+      router.refresh();
     });
   }
 
@@ -172,7 +186,7 @@ export default function TransactionRow({
         </button>
         <button
           disabled={isPending}
-          onClick={() => startTransition(() => deleteTransaction(t.id))}
+          onClick={remove}
           className="rounded-md p-1.5 text-ink-faint transition-colors hover:bg-negative/10 hover:text-negative-strong disabled:opacity-50"
           aria-label="Usuń transakcję"
         >
