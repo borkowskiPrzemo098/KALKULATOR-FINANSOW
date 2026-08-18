@@ -1,7 +1,12 @@
+import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { ArrowUpRightIcon, ArrowDownRightIcon, PlusIcon } from "@/components/icons";
+import { ensureRecurringGenerated } from "@/lib/recurring";
+import { parsePeriodParams, getPeriodBounds, getPeriodLabel, isCurrentPeriod } from "@/lib/period";
+import { ArrowUpRightIcon, ArrowDownRightIcon, PlusIcon, CategoryIcon, TagIcon } from "@/components/icons";
 import TiltCard from "@/components/tilt-card";
+import PeriodSwitcher from "@/components/period-switcher";
+import PieChart from "@/components/pie-chart";
 import { addTransaction } from "./actions";
 import DeleteButton from "./delete-button";
 
@@ -12,15 +17,49 @@ function formatPLN(value: number) {
   }).format(value);
 }
 
-export default async function DashboardPage() {
+const FALLBACK_COLOR = "#8a8378";
+
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ range?: string; date?: string }>;
+}) {
   const session = await getSession();
   if (!session) return null; // layout nadrzędny już przekierował
 
-  const transactions = await prisma.transaction.findMany({
-    where: { userId: session.userId },
-    orderBy: [{ occurredOn: "desc" }, { createdAt: "desc" }],
-    take: 100,
-  });
+  const params = await searchParams;
+  const { range, anchor } = parsePeriodParams(params);
+  const { start, end } = getPeriodBounds(range, anchor);
+  const periodLabel = getPeriodLabel(range, anchor);
+
+  await ensureRecurringGenerated(session.userId);
+
+  const now = new Date();
+  const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  const monthEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+
+  const [transactions, categories, monthExpenses] = await Promise.all([
+    prisma.transaction.findMany({
+      where: { userId: session.userId, occurredOn: { gte: start, lt: end } },
+      include: { category: true },
+      orderBy: [{ occurredOn: "desc" }, { createdAt: "desc" }],
+      take: 200,
+    }),
+    prisma.category.findMany({
+      where: { userId: session.userId },
+      orderBy: { createdAt: "asc" },
+    }),
+    // Budżety miesięczne liczone zawsze od bieżącego kalendarzowego
+    // miesiąca — niezależnie od wybranego okresu filtrowania powyżej.
+    prisma.transaction.findMany({
+      where: {
+        userId: session.userId,
+        type: "expense",
+        occurredOn: { gte: monthStart, lt: monthEnd },
+      },
+      select: { amount: true, categoryId: true },
+    }),
+  ]);
 
   const income = transactions
     .filter((t) => t.type === "income")
@@ -30,8 +69,51 @@ export default async function DashboardPage() {
     .reduce((sum, t) => sum + Number(t.amount), 0);
   const balance = income - expense;
 
+  // Podział wydatków po kategoriach w wybranym okresie — dane wykresu.
+  const expenseByCategory = new Map<string, { label: string; value: number; color: string }>();
+  for (const t of transactions) {
+    if (t.type !== "expense") continue;
+    const key = t.category?.id ?? "none";
+    const label = t.category?.name ?? "Bez kategorii";
+    const color = t.category?.color ?? FALLBACK_COLOR;
+    const prev = expenseByCategory.get(key);
+    expenseByCategory.set(key, {
+      label,
+      color,
+      value: (prev?.value ?? 0) + Number(t.amount),
+    });
+  }
+  const pieData = [...expenseByCategory.values()].sort((a, b) => b.value - a.value);
+
+  // Budżety: kategorie wydatków z limitem, suma wydana w bieżącym miesiącu.
+  const spentByCategory = new Map<string, number>();
+  for (const t of monthExpenses) {
+    if (!t.categoryId) continue;
+    spentByCategory.set(t.categoryId, (spentByCategory.get(t.categoryId) ?? 0) + Number(t.amount));
+  }
+  const budgets = categories
+    .filter((c) => c.type === "expense" && c.monthlyLimit)
+    .map((c) => ({
+      id: c.id,
+      name: c.name,
+      icon: c.icon,
+      color: c.color,
+      limit: Number(c.monthlyLimit),
+      spent: spentByCategory.get(c.id) ?? 0,
+    }));
+
+  const expenseCategories = categories.filter((c) => c.type === "expense");
+  const incomeCategories = categories.filter((c) => c.type === "income");
+
   return (
     <div className="space-y-10">
+      <PeriodSwitcher
+        range={range}
+        anchor={anchor}
+        label={periodLabel}
+        isCurrent={isCurrentPeriod(range, anchor)}
+      />
+
       {/* Podsumowanie — jeden spójny panel, nie trzy oddzielne karty. */}
       <TiltCard className="grid divide-y divide-border rounded-2xl border border-border bg-canvas-raised sm:grid-cols-3 sm:divide-x sm:divide-y-0">
         <div className="p-6">
@@ -60,13 +142,67 @@ export default async function DashboardPage() {
         </div>
       </TiltCard>
 
+      {budgets.length > 0 && (
+        <div className="elevated rounded-2xl border border-border bg-canvas-raised p-6">
+          <div className="flex items-center justify-between">
+            <h2 className="font-display text-xl italic text-ink">
+              Budżety miesięczne
+            </h2>
+            <span className="text-xs text-ink-faint">bieżący miesiąc</span>
+          </div>
+          <div className="mt-5 space-y-4">
+            {budgets.map((b) => {
+              const pct = Math.min(100, Math.round((b.spent / b.limit) * 100));
+              const over = b.spent > b.limit;
+              return (
+                <div key={b.id}>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="flex items-center gap-2 text-ink">
+                      <CategoryIcon icon={b.icon} className="h-4 w-4" style={{ color: b.color }} />
+                      {b.name}
+                    </span>
+                    <span className={`tabular ${over ? "text-negative-strong" : "text-ink-muted"}`}>
+                      {formatPLN(b.spent)} / {formatPLN(b.limit)}
+                    </span>
+                  </div>
+                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-surface-hover">
+                    <div
+                      className="h-full rounded-full transition-[width] duration-700 ease-out"
+                      style={{
+                        width: `${pct}%`,
+                        backgroundColor: over ? "var(--negative)" : b.color,
+                      }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <div className="elevated rounded-2xl border border-border bg-canvas-raised p-6">
         <h2 className="font-display text-xl italic text-ink">
-          Dodaj transakcję
+          Wydatki wg kategorii
         </h2>
+        <div className="mt-6 flex justify-center sm:justify-start">
+          <PieChart data={pieData} />
+        </div>
+      </div>
+
+      <div className="elevated rounded-2xl border border-border bg-canvas-raised p-6">
+        <div className="flex items-center justify-between">
+          <h2 className="font-display text-xl italic text-ink">
+            Dodaj transakcję
+          </h2>
+          <Link href="/categories" className="flex items-center gap-1 text-xs text-ink-muted hover:text-accent">
+            <TagIcon className="h-3.5 w-3.5" />
+            Zarządzaj kategoriami
+          </Link>
+        </div>
         <form
           action={addTransaction}
-          className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-5 sm:items-end"
+          className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-6 sm:items-end"
         >
           <div className="sm:col-span-1">
             <label className="mb-1.5 block text-xs font-medium text-ink-muted">
@@ -107,6 +243,27 @@ export default async function DashboardPage() {
           </div>
           <div className="sm:col-span-1">
             <label className="mb-1.5 block text-xs font-medium text-ink-muted">
+              Kategoria
+            </label>
+            <select
+              name="categoryId"
+              className="w-full rounded-lg border border-border-strong px-2.5 py-2.5 text-sm"
+            >
+              <option value="">—</option>
+              <optgroup label="Wydatki">
+                {expenseCategories.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </optgroup>
+              <optgroup label="Przychody">
+                {incomeCategories.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </optgroup>
+            </select>
+          </div>
+          <div className="sm:col-span-1">
+            <label className="mb-1.5 block text-xs font-medium text-ink-muted">
               Data
             </label>
             <input
@@ -116,7 +273,7 @@ export default async function DashboardPage() {
               className="w-full rounded-lg border border-border-strong px-2.5 py-2.5 text-sm"
             />
           </div>
-          <div className="sm:col-span-5">
+          <div className="sm:col-span-6">
             <button
               type="submit"
               className="inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-accent-ink transition-colors hover:bg-accent-strong"
@@ -130,11 +287,11 @@ export default async function DashboardPage() {
 
       <div className="elevated rounded-2xl border border-border bg-canvas-raised">
         <h2 className="border-b border-border px-6 py-5 font-display text-xl italic text-ink">
-          Ostatnie transakcje
+          Transakcje — {periodLabel.toLowerCase()}
         </h2>
         {transactions.length === 0 ? (
           <p className="px-6 py-10 text-center text-sm text-ink-faint">
-            Brak transakcji. Dodaj pierwszą powyżej.
+            Brak transakcji w tym okresie.
           </p>
         ) : (
           <ul className="divide-y divide-border">
@@ -145,16 +302,19 @@ export default async function DashboardPage() {
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <span
-                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
-                      t.type === "income"
-                        ? "bg-positive/10 text-positive"
-                        : "bg-negative/10 text-negative"
-                    }`}
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
+                    style={
+                      t.category
+                        ? { backgroundColor: `${t.category.color}26`, color: t.category.color }
+                        : undefined
+                    }
                   >
-                    {t.type === "income" ? (
-                      <ArrowUpRightIcon className="h-4 w-4" />
+                    {t.category ? (
+                      <CategoryIcon icon={t.category.icon} className="h-4 w-4" />
+                    ) : t.type === "income" ? (
+                      <ArrowUpRightIcon className="h-4 w-4 text-positive" />
                     ) : (
-                      <ArrowDownRightIcon className="h-4 w-4" />
+                      <ArrowDownRightIcon className="h-4 w-4 text-negative" />
                     )}
                   </span>
                   <div className="min-w-0">
@@ -163,6 +323,7 @@ export default async function DashboardPage() {
                     </p>
                     <p className="text-xs text-ink-faint">
                       {t.occurredOn.toISOString().slice(0, 10)}
+                      {t.category ? ` · ${t.category.name}` : ""}
                     </p>
                   </div>
                 </div>

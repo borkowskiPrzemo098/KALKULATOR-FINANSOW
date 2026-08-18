@@ -12,6 +12,7 @@ export async function addTransaction(formData: FormData) {
   const amount = Number(formData.get("amount"));
   const description = (formData.get("description") as string) || null;
   const occurred_on = formData.get("occurred_on") as string;
+  const categoryId = (formData.get("categoryId") as string) || null;
 
   if (!["income", "expense"].includes(type)) {
     throw new Error("Nieprawidłowy typ transakcji.");
@@ -26,6 +27,7 @@ export async function addTransaction(formData: FormData) {
       type,
       amount,
       description,
+      categoryId: categoryId || null,
       occurredOn: new Date(occurred_on || new Date().toISOString().slice(0, 10)),
     },
   });

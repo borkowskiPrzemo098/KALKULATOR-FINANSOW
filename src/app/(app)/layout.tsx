@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { MarkIcon, ShieldIcon } from "@/components/icons";
+import { MarkIcon, ShieldIcon, TagIcon, RepeatIcon } from "@/components/icons";
 import ThemeToggle from "@/components/theme-toggle";
 import LogoutButton from "./logout-button";
 
@@ -51,6 +51,19 @@ export default async function AppLayout({
             <ThemeToggle />
             <LogoutButton />
           </div>
+        </div>
+        <div className="mx-auto flex max-w-4xl gap-5 px-6 pb-4 text-sm">
+          <Link href="/dashboard" className="text-ink-muted transition-colors hover:text-ink">
+            Budżet
+          </Link>
+          <Link href="/categories" className="flex items-center gap-1.5 text-ink-muted transition-colors hover:text-ink">
+            <TagIcon className="h-3.5 w-3.5" />
+            Kategorie
+          </Link>
+          <Link href="/recurring" className="flex items-center gap-1.5 text-ink-muted transition-colors hover:text-ink">
+            <RepeatIcon className="h-3.5 w-3.5" />
+            Cykliczne
+          </Link>
         </div>
       </header>
       <main className="mx-auto max-w-4xl px-6 py-10">{children}</main>
